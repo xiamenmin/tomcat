@@ -731,6 +731,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             long cachedLastModified = entry.getValue().lastModified;
             long lastModified = resources.getClassLoaderResource(
                     entry.getKey()).getLastModified();
+            // 某一个文件最后一次修改时间是什么
             if (lastModified != cachedLastModified) {
                 if( log.isDebugEnabled() )
                     log.debug(sm.getString("webappClassLoader.resourceModified",
@@ -742,6 +743,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
         }
 
         // Check if JARs have been added or removed
+        // 检测jar包删除与修改
         WebResource[] jars = resources.listResources("/WEB-INF/lib");
         // Filter out non-JAR resources
 
@@ -1250,7 +1252,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             // (0.2) Try loading the class with the system class loader, to prevent
             //       the webapp from overriding Java SE classes. This implements
             //       SRV.10.7.2
-            // 尝试通过类加载器（AppClassLoader）加载类，防止Webapp重写JDK中的类
+            // 尝试通过类加载器（ExtClassLoader）加载类，防止Webapp重写JDK中的类
             // 假设，webapp想自己去加载一个java.lang.string的类，这是不允许的，必须在这里进行预防
             String resourceName = binaryNameToPath(name, false);
 
@@ -1317,7 +1319,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             boolean delegateLoad = delegate || filter(name, true); //委派
 
             // (1) Delegate to our parent if requested
-            // 是否委派给父类去加载
+            // 是否委派给父类去加载 CommonClassLoader（URLClassLoader）去加载
             if (delegateLoad) {
                 if (log.isDebugEnabled())
                     log.debug("  Delegating to parent classloader1 " + parent);

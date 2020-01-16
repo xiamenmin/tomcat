@@ -3737,6 +3737,7 @@ public class StandardContext extends ContainerBase
     public synchronized void reload() {
 
         // Validate our current component state
+        // 验证当前组件状态
         if (!getState().isAvailable())
             throw new IllegalStateException
                 (sm.getString("standardContext.notStarted", getName()));
@@ -3746,6 +3747,7 @@ public class StandardContext extends ContainerBase
                     getName()));
 
         // Stop accepting requests temporarily.
+        // 暂停，并停止接受请求
         setPaused(true);
 
         try {
@@ -3761,7 +3763,7 @@ public class StandardContext extends ContainerBase
             log.error(
                 sm.getString("standardContext.startingContext", getName()), e);
         }
-
+        // 恢复
         setPaused(false);
 
         if(log.isInfoEnabled())
