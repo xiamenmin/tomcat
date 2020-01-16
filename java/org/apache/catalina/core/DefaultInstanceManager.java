@@ -147,6 +147,7 @@ public class DefaultInstanceManager implements InstanceManager {
     public Object newInstance(String className) throws IllegalAccessException,
             InvocationTargetException, NamingException, InstantiationException,
             ClassNotFoundException, IllegalArgumentException, NoSuchMethodException, SecurityException {
+        // 通过自定义classLoader加载，也就是我们的ParallelWebappClassLoader
         Class<?> clazz = loadClassMaybePrivileged(className, classLoader);
         return newInstance(clazz.getConstructor().newInstance(), clazz);
     }
@@ -533,6 +534,7 @@ public class DefaultInstanceManager implements InstanceManager {
     protected Class<?> loadClass(String className, ClassLoader classLoader)
             throws ClassNotFoundException {
         if (className.startsWith("org.apache.catalina")) {
+            // 如果是以 catalina 为开始的话，那么就通过 AppClassLoader 加载
             return containerClassLoader.loadClass(className);
         }
         try {

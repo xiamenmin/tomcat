@@ -759,7 +759,9 @@ public class StandardWrapper extends ContainerBase
                             }
 
                             // Note: We don't know if the Servlet implements
+                            // 注意：我们不知道Servlet是否实现
                             // SingleThreadModel until we have loaded it.
+                            // SingleThreadModel，直到我们加载它为止。
                             instance = loadServlet();
                             newInstance = true;
                             if (!singleThreadModel) {
@@ -1041,6 +1043,7 @@ public class StandardWrapper extends ContainerBase
 
             InstanceManager instanceManager = ((StandardContext)getParent()).getInstanceManager();
             try {
+                // 通过反射创建实例对象
                 servlet = (Servlet) instanceManager.newInstance(servletClass);
             } catch (ClassCastException e) {
                 unavailable(null);

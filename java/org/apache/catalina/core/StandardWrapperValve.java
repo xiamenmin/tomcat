@@ -129,8 +129,10 @@ final class StandardWrapperValve
         }
 
         // Allocate a servlet instance to process this request
+        // 分配一个servlet实例来处理该请求
         try {
             if (!unavailable) {
+                // 关键方法
                 servlet = wrapper.allocate();
             }
         } catch (UnavailableException e) {
@@ -196,6 +198,7 @@ final class StandardWrapperValve
                     if (request.isAsyncDispatching()) {
                         request.getAsyncContextInternal().doInternalDispatch();
                     } else {
+                        // 处理请求
                         filterChain.doFilter
                             (request.getRequest(), response.getResponse());
                     }

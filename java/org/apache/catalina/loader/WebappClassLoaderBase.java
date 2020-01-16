@@ -277,6 +277,8 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
      * resources may be requested by binary name (classes) or path (other
      * resources such as property files) and the mapping from binary name to
      * path is unambiguous but the reverse mapping is ambiguous.
+     *
+     * 记录一下某个类在哪里
      */
     protected final Map<String, ResourceEntry> resourceEntries =
             new ConcurrentHashMap<>();
@@ -852,6 +854,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
                         new PrivilegedFindClassByName(name);
                     clazz = AccessController.doPrivileged(dp);
                 } else {
+                    // 从内部仓库中查找
                     clazz = findClassInternal(name);
                 }
             } catch(AccessControlException ace) {
@@ -865,6 +868,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             }
             if ((clazz == null) && hasExternalRepositories) {
                 try {
+                    // 从外部的仓库进行findClass
                     clazz = super.findClass(name);
                 } catch(AccessControlException ace) {
                     log.warn("WebappClassLoader.findClassInternal(" + name
@@ -1205,6 +1209,10 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
      * @param resolve If <code>true</code> then resolve the class
      *
      * @exception ClassNotFoundException if the class was not found
+     *
+     * 重写了loadClass方法
+     * 默认的loadClass方法实现了双亲委派机制的逻辑，即会先让父类加载器加载，当无法加载时，才由自己加载
+     *
      */
     @Override
     public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
@@ -1218,6 +1226,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             checkStateForClassLoading(name);
 
             // (0) Check our previously loaded local class cache
+            // 先检查该类是否已经被WebappClassLoader加载,注意这个类不是native的，而是使用map自定义实现缓存
             clazz = findLoadedClass0(name);
             if (clazz != null) {
                 if (log.isDebugEnabled())
@@ -1228,6 +1237,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             }
 
             // (0.1) Check our previously loaded class cache
+            // 该方法直接调用findLoadedClass0本地方法，findLoadedClass0方法会检查JVM缓存中是否已经加载过此类
             clazz = findLoadedClass(name);
             if (clazz != null) {
                 if (log.isDebugEnabled())
@@ -1240,9 +1250,11 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             // (0.2) Try loading the class with the system class loader, to prevent
             //       the webapp from overriding Java SE classes. This implements
             //       SRV.10.7.2
+            // 尝试通过类加载器（AppClassLoader）加载类，防止Webapp重写JDK中的类
+            // 假设，webapp想自己去加载一个java.lang.string的类，这是不允许的，必须在这里进行预防
             String resourceName = binaryNameToPath(name, false);
 
-            ClassLoader javaseLoader = getJavaseClassLoader();
+            ClassLoader javaseLoader = getJavaseClassLoader();  // javaseClassLoader.
             boolean tryLoadingFromJavaseLoader;
             try {
                 // Use getResource as it won't trigger an expensive
@@ -1274,6 +1286,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
 
             if (tryLoadingFromJavaseLoader) {
                 try {
+                    // 加载
                     clazz = javaseLoader.loadClass(name);
                     if (clazz != null) {
                         if (resolve)
@@ -1286,6 +1299,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             }
 
             // (0.5) Permission to access this class when using a SecurityManager
+            // 当使用SecurityManager权限访问这个类
             if (securityManager != null) {
                 int i = name.lastIndexOf('.');
                 if (i >= 0) {
@@ -1300,9 +1314,10 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
                 }
             }
 
-            boolean delegateLoad = delegate || filter(name, true);
+            boolean delegateLoad = delegate || filter(name, true); //委派
 
             // (1) Delegate to our parent if requested
+            // 是否委派给父类去加载
             if (delegateLoad) {
                 if (log.isDebugEnabled())
                     log.debug("  Delegating to parent classloader1 " + parent);
@@ -1321,9 +1336,11 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             }
 
             // (2) Search local repositories
+            // 从webapp应用内部进行加载
             if (log.isDebugEnabled())
                 log.debug("  Searching local repositories");
             try {
+                // 重点，从app里的 classes，lib 里面去查找
                 clazz = findClass(name);
                 if (clazz != null) {
                     if (log.isDebugEnabled())
@@ -1337,6 +1354,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             }
 
             // (3) Delegate to parent unconditionally
+            // 如果webapp应用内部没有加载到类，那么无条件委托给父类进行加载
             if (!delegateLoad) {
                 if (log.isDebugEnabled())
                     log.debug("  Delegating to parent classloader at end: " + parent);
@@ -2270,12 +2288,14 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
         if (name == null) {
             return null;
         }
+        // 转化为 com/xx/Test，其实也就是 1 for leading '/', 6 for ".class"
         String path = binaryNameToPath(name, true);
 
         ResourceEntry entry = resourceEntries.get(path);
         WebResource resource = null;
 
         if (entry == null) {
+            // 通过 /WEB-INF/classes 下查找
             resource = resources.getClassLoaderResource(path);
 
             if (!resource.exists()) {
@@ -2392,6 +2412,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             }
 
             try {
+                // 加载类
                 clazz = defineClass(name, binaryContent, 0,
                         binaryContent.length, new CodeSource(codeBase, certificates));
             } catch (UnsupportedClassVersionError ucve) {
