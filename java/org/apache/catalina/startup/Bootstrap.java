@@ -248,11 +248,11 @@ public final class Bootstrap {
      * @throws Exception Fatal initialization error
      */
     public void init() throws Exception {
-
+        // 初始化类加载器
         initClassLoaders();
-
+        // 设置当前线程上下文为 catalinaLoader
         Thread.currentThread().setContextClassLoader(catalinaLoader);
-
+        // jdk权限等安全
         SecurityClassLoad.securityClassLoad(catalinaLoader);
 
         // Load our startup class and call its process() method
