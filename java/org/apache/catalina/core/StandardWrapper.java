@@ -181,6 +181,7 @@ public class StandardWrapper extends ContainerBase
 
     /**
      * Does this servlet implement the SingleThreadModel interface?
+     * 此Servlet是否实现SingleThreadModel接口
      */
     protected volatile boolean singleThreadModel = false;
 
@@ -205,6 +206,7 @@ public class StandardWrapper extends ContainerBase
 
     /**
      * Stack containing the STM instances.
+     * 如果实现 SingleThreadModel 的存储在这里
      */
     protected Stack<Servlet> instancePool = null;
 
@@ -736,6 +738,9 @@ public class StandardWrapper extends ContainerBase
      * @exception ServletException if the servlet init() method threw
      *  an exception
      * @exception ServletException if a loading error occurs
+     * 分配一个已经初始化好的Servlet实例
+     * 如果Servlet没有实现SingleThreadModel接口，已经被初始化好的实例可以被立即返回
+     * 如果Servlet实现了SingleThreadModel接口，Wrapper的实现要确保某一个实例不会重复分配，除非调用了deallocation方法回收
      */
     @Override
     public Servlet allocate() throws ServletException {
@@ -808,6 +813,7 @@ public class StandardWrapper extends ContainerBase
         synchronized (instancePool) {
             while (countAllocated.get() >= nInstances) {
                 // Allocate a new instance if possible, or else wait
+                // 如果可能，分配一个新实例，否则等待
                 if (nInstances < maxInstances) {
                     try {
                         instancePool.push(loadServlet());

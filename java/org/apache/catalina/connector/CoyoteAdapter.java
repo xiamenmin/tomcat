@@ -299,7 +299,7 @@ public class CoyoteAdapter implements Adapter {
     @Override
     public void service(org.apache.coyote.Request req, org.apache.coyote.Response res)
             throws Exception {
-
+        // 获取Servlet规范的request与response
         Request request = (Request) req.getNote(ADAPTER_NOTES);
         Response response = (Response) res.getNote(ADAPTER_NOTES);
 
@@ -333,6 +333,7 @@ public class CoyoteAdapter implements Adapter {
 
         try {
             // Parse and set Catalina and configuration specific
+            // 解析并设置Catalina和特定于配置
             // request parameters
             postParseSuccess = postParseRequest(req, request, res, response);
             if (postParseSuccess) {
@@ -340,6 +341,7 @@ public class CoyoteAdapter implements Adapter {
                 request.setAsyncSupported(
                         connector.getService().getContainer().getPipeline().isAsyncSupported());
                 // Calling the container
+                // 调用容器，其实也就是调用  getService().getEngine().getPipeline.getFirst().invoke
                 connector.getService().getContainer().getPipeline().getFirst().invoke(
                         request, response);
             }

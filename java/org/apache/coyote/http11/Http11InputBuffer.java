@@ -407,6 +407,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
             //
             // Reading the method name
             // Method name is a token
+            // 读取请求方法如 Get POST
             //
             boolean space = false;
             while (!space) {

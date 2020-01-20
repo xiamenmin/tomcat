@@ -71,6 +71,7 @@ final class StandardEngineValve extends ValveBase {
         throws IOException, ServletException {
 
         // Select the Host to be used for this Request
+        // 选择主机用于此请求
         Host host = request.getHost();
         if (host == null) {
             response.sendError
@@ -84,6 +85,7 @@ final class StandardEngineValve extends ValveBase {
         }
 
         // Ask this Host to process this request
+        // 要求host继续处理此请求
         host.getPipeline().getFirst().invoke(request, response);
 
     }

@@ -1071,12 +1071,14 @@ public abstract class AbstractEndpoint<S> {
             }
             SocketProcessorBase<S> sc = processorCache.pop();
             if (sc == null) {
+                // 拿到缓存线程
                 sc = createSocketProcessor(socketWrapper, event);
             } else {
                 sc.reset(socketWrapper, event);
             }
             Executor executor = getExecutor();
             if (dispatch && executor != null) {
+                // 执行
                 executor.execute(sc);
             } else {
                 sc.run();

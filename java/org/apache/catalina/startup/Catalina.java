@@ -673,6 +673,7 @@ public class Catalina {
     public void start() {
 
         if (getServer() == null) {
+            // 加载xml等配置
             load();
         }
 

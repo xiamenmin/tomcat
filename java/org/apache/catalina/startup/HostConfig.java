@@ -414,6 +414,7 @@ public class HostConfig implements LifecycleListener {
     /**
      * Deploy applications for any directories or WAR files that are found
      * in our "application root" directory.
+     * 另外Tomcat中使用异步多线程的方式部署应用
      */
     protected void deployApps() {
 
@@ -421,9 +422,12 @@ public class HostConfig implements LifecycleListener {
         File configBase = host.getConfigBaseFile();
         String[] filteredAppPaths = filterAppPaths(appBase.list());
         // Deploy XML descriptors from configBase
+        // 描述符部署
         deployDescriptors(configBase, configBase.list());
         // Deploy WARs
+        // war包部署，其实就是编译 webapps下面的war包
         deployWARs(appBase, filteredAppPaths);
+        // 文件夹部署
         // Deploy expanded folders
         deployDirectories(appBase, filteredAppPaths);
 

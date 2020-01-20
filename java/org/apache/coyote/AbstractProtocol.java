@@ -593,7 +593,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler,
         if (getLog().isInfoEnabled()) {
             getLog().info(sm.getString("abstractProtocolHandler.start", getName()));
         }
-
+        // 启动 endpoint
         endpoint.start();
 
         // Start timeout thread
@@ -800,6 +800,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler,
                     }
                 }
                 if (processor == null) {
+                    // 创建processor
                     processor = getProtocol().createProcessor();
                     register(processor);
                     if (getLog().isDebugEnabled()) {
@@ -815,6 +816,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler,
 
                 SocketState state = SocketState.CLOSED;
                 do {
+                    // 执行
                     state = processor.process(wrapper, status);
 
                     if (state == SocketState.UPGRADING) {

@@ -159,7 +159,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
     private AtomicInteger pollerRotater = new AtomicInteger(0);
     /**
      * Return an available poller in true round robin fashion.
-     *
+     * 以真正的轮询方式返回可用的轮询器
      * @return The next poller in sequence
      */
     public Poller getPoller0() {
@@ -273,6 +273,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
             initializeConnectionLatch();
 
             // Start poller threads
+            // 启动轮询器线程
             pollers = new Poller[getPollerThreadCount()];
             for (int i=0; i<pollers.length; i++) {
                 pollers[i] = new Poller();
@@ -388,6 +389,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
 
     /**
      * Process the specified connection.
+     * 处理指定的连接
      * @param socket The socket channel
      * @return <code>true</code> if the socket was correctly configured
      *  and processing may continue, <code>false</code> if the socket needs to be
@@ -416,6 +418,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                 channel.setIOChannel(socket);
                 channel.reset();
             }
+            // 拿出getPoller0 线程注册事件
             getPoller0().register(channel);
         } catch (Throwable t) {
             ExceptionUtils.handleThrowable(t);
@@ -475,12 +478,13 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
 
                 try {
                     //if we have reached max connections, wait
+                    // 达到最大连接数限制则等待
                     countUpOrAwaitConnection();
 
                     SocketChannel socket = null;
                     try {
                         // Accept the next incoming connection from the server
-                        // socket
+                        // socket连接进来了
                         socket = serverSock.accept();
                     } catch (IOException ioe) {
                         // We didn't get a socket
@@ -501,6 +505,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                     if (running && !paused) {
                         // setSocketOptions() will hand the socket off to
                         // an appropriate processor if successful
+                        // setSocketOptions（）会将套接字移交给处理器
                         if (!setSocketOptions(socket)) {
                             closeSocket(socket);
                         }
@@ -859,7 +864,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                         iterator.remove();
                     } else {
                         iterator.remove();
-                        processKey(sk, attachment);
+                        processKey(sk, attachment); // 执行事件key
                     }
                 }//while
 
@@ -1587,6 +1592,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
 
                 try {
                     if (key != null) {
+                        // 是否握手完成
                         if (socket.isHandshakeComplete()) {
                             // No TLS handshaking required. Let the handler
                             // process this socket / event combination.
@@ -1617,10 +1623,11 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                 if (handshake == 0) {
                     SocketState state = SocketState.OPEN;
                     // Process the request from this socket
+                    // 从这里开始处理 socket
                     if (event == null) {
                         state = getHandler().process(socketWrapper, SocketEvent.OPEN_READ);
                     } else {
-                        state = getHandler().process(socketWrapper, event);
+                        state = getHandler().process(socketWrapper, event); //11
                     }
                     if (state == SocketState.CLOSED) {
                         close(socket, key);
@@ -1644,6 +1651,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                 socketWrapper = null;
                 event = null;
                 //return to cache
+                // 返回缓存，也就是回收 SocketProcessor extend Runnable
                 if (running && !paused) {
                     processorCache.push(this);
                 }

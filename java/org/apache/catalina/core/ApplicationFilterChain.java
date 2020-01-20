@@ -146,6 +146,7 @@ public final class ApplicationFilterChain implements FilterChain {
                         @Override
                         public Void run()
                             throws ServletException, IOException {
+                            // 执行过滤器链
                             internalDoFilter(req,res);
                             return null;
                         }
@@ -163,6 +164,7 @@ public final class ApplicationFilterChain implements FilterChain {
                     throw new ServletException(e.getMessage(), e);
             }
         } else {
+            // 执行过滤器链
             internalDoFilter(request,response);
         }
     }
@@ -172,6 +174,7 @@ public final class ApplicationFilterChain implements FilterChain {
         throws IOException, ServletException {
 
         // Call the next filter if there is one
+        // 如果有一个，则调用下一个过滤器
         if (pos < n) {
             ApplicationFilterConfig filterConfig = filters[pos++];
             try {
@@ -190,6 +193,7 @@ public final class ApplicationFilterChain implements FilterChain {
                     Object[] args = new Object[]{req, res, this};
                     SecurityUtil.doAsPrivilege ("doFilter", filter, classType, args, principal);
                 } else {
+                    // 循环调用
                     filter.doFilter(request, response, this);
                 }
             } catch (IOException | ServletException | RuntimeException e) {
@@ -203,6 +207,7 @@ public final class ApplicationFilterChain implements FilterChain {
         }
 
         // We fell off the end of the chain -- call the servlet instance
+        // 当执行完了 chain 的末端，执行servlet实例
         try {
             if (ApplicationDispatcher.WRAP_SAME_OBJECT) {
                 lastServicedRequest.set(request);
@@ -228,6 +233,7 @@ public final class ApplicationFilterChain implements FilterChain {
                                            args,
                                            principal);
             } else {
+                // 执行servlet的service方法
                 servlet.service(request, response);
             }
         } catch (IOException | ServletException | RuntimeException e) {
